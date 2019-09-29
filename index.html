@@ -1,0 +1,49 @@
+<html>
+ <head>
+  <title>Sokoban</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+ </head>
+ <body>
+  <div id="setup">
+    <textarea id="level-definition" rows="12" cols="40">
+            #####
+            #   #
+            #$  #
+          ###  $##
+          #  $ $ #
+        ### # ## #   ######
+        #   # ## #####  ..#
+        # $  $          ..#
+        ##### ### #@##  ..#
+            #     #########
+            #######
+    </textarea>
+    <p><input type="button" value="Load level" onclick="loadLevel()" autofocus></input></p>
+  </div>
+  <svg id="game-view" style="display:none; stroke-width: 0.05px">
+   <defs>
+     <rect id="grid-cell" x="0" y="0" width="1" height="1"
+       style="fill: #f0f0f0; stroke: #e0e0e0"></rect>
+     <g id="goal-cell">
+      <rect  x="0" y="0" width="1" height="1"
+        style="fill: #ffe000; stroke: #f0d000"></rect>
+      <rect x="0.25" y="0.25" width="0.5" height="0.5" transform="rotate(45 0.5 0.5)" style="fill: none; stroke: #f0d000"></rect>
+     </g>
+     <rect id="wall-cell" x="0" y="0" width="1" height="1"
+       style="fill: #603020; stroke: none"></rect>
+     <g id="box-cell">
+      <rect x="0.05" y="0.05" width="0.9" height="0.9"
+        style="fill: #00c000; stroke: #00a000; stroke-width: 0.1"></rect>
+     </g>
+     <circle id="player-cell" cx="0.5" cy="0.5" r="0.4"
+       style="fill: #0000a0; stroke: #4040c0"></circle>
+    </defs>
+    <g id="game-grid"></g>
+    <g id="game-goals"></g>
+    <g id="game-walls"></g>
+    <g id="game-boxes"></g>
+    <g id="game-player"></g>
+  </svg>
+  <script src="game.js" defer></script>
+ </body>
+</html>
