@@ -11,8 +11,8 @@ function parseLevel(levelText) {
             }
         }
     }
-    if (minR < 0) {
-        return null;
+    if (minR > maxR) {
+        return null;  // empty bounding box
     }
     const height = maxR - minR + 1;
     const width = maxC - minC + 1;
@@ -49,7 +49,7 @@ function parseLevel(levelText) {
             }
             if (player) {
                 if (playerR >= 0) {
-                    return null;
+                    return null;  // multiple starting positions
                 }
                 playerR = r - minR;
                 playerC = c - minC;
@@ -58,6 +58,9 @@ function parseLevel(levelText) {
             goals[r - minR].push(goal);
             boxes[r - minR].push(box);
         }
+    }
+    if (playerR < 0) {
+        return null;  // no starting position found
     }
     return {
         height: height,
