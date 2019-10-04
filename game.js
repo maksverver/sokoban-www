@@ -1,3 +1,53 @@
+// This function should only be called once.
+function initialize() {
+    loadLevels(initializeLevelsSelect);
+}
+
+function loadLevels(callback) {
+    var levelsRequest = new XMLHttpRequest();
+    levelsRequest.addEventListener("load", () => {
+        const levelText = levelsRequest.responseText
+                .replace(/^;.*$/gm, '')
+                .replace(/^\n+/, '')
+                .replace(/\n+$/, '');
+        const levels = levelText.split(/\n{2,}/);
+        callback(levels);
+    });
+    levelsRequest.open("GET", "levels.txt");
+    levelsRequest.send();
+}
+
+function initializeLevelsSelect(levels) {
+    const selectedLevelIndex = 0;
+    const levelsSelect = document.getElementById('levels-select');
+    const levelTextArea = document.getElementById('level-definition');
+    clearChildren(levelsSelect);
+    for (let i = 0; i < levels.length; ++i) {
+        let option = document.createElement('option');
+        option.value = i;
+        option.selected = i == selectedLevelIndex;
+        option.appendChild(document.createTextNode('Level ' + (i + 1)));
+        levelsSelect.appendChild(option)
+    }
+    if (selectedLevelIndex < levels.length) {
+        levelTextArea.value = levels[selectedLevelIndex];
+    }
+    levelsSelect.onchange = () => {
+        levelTextArea.value = levels[levelsSelect.value];
+    };
+}
+
+function start() {
+    const levelText = document.getElementById('level-definition').value;
+    let level = parseLevel(levelText);
+    if (!level) {
+        alert('Invalid level definition!');
+        return;
+    }
+    console.info('Loaded level', level);
+    startLevel(level);
+}
+
 function parseLevel(levelText) {
     const lines = levelText.split('\n');
     let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
@@ -92,7 +142,7 @@ function clearChildren(elem) {
 }
 
 // This function should only be called once.
-function loadLevel() {
+function startLevel(level) {
     document.addEventListener('keydown', event => {
         //console.log(event);
         switch (event.key) {
@@ -123,10 +173,6 @@ function loadLevel() {
 
     let undoStack = [];
     let redoStack = [];
-
-    const levelText = document.getElementById('level-definition').value;
-    let level = parseLevel(levelText);
-    console.info('Loaded level', level);
 
     document.getElementById('setup').style.display = 'none';
     const svg = document.getElementById('game-view');

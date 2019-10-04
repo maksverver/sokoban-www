@@ -3,22 +3,13 @@
   <title>Sokoban</title>
   <link rel="stylesheet" type="text/css" href="style.css">
  </head>
- <body>
+ <body onload="initialize()">
   <div id="setup">
-    <textarea id="level-definition" rows="12" cols="40">
-            #####
-            #   #
-            #$  #
-          ###  $##
-          #  $ $ #
-        ### # ## #   ######
-        #   # ## #####  ..#
-        # $  $          ..#
-        ##### ### #@##  ..#
-            #     #########
-            #######
-    </textarea>
-    <p><input type="button" value="Load level" onclick="loadLevel()" autofocus></input></p>
+    <textarea id="level-definition" rows="15" cols="30"></textarea>
+    <p>
+     <select id="levels-select"></select>
+     <input type="button" value="Start" onclick="start()" autofocus></input>
+    </p>
   </div>
   <svg id="game-view" style="display:none; stroke-width: 0.05px">
    <defs>
