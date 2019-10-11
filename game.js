@@ -145,18 +145,23 @@ function clearChildren(elem) {
 function startLevel(level) {
     document.addEventListener('keydown', event => {
         //console.log(event);
+        let handled = false;
         switch (event.key) {
         case 'ArrowLeft':
             tryMove( 0, -1);
+            handled = true;
             break;
         case 'ArrowUp':
             tryMove(-1,  0);
+            handled = true;
             break;
         case 'ArrowRight':
             tryMove( 0, +1);
+            handled = true;
             break;
         case 'ArrowDown':
             tryMove(+1,  0);
+            handled = true;
             break;
         case 'z':
         case 'Z':
@@ -166,8 +171,13 @@ function startLevel(level) {
                 } else {
                     tryUndo();
                 }
+                handled = true;
             }
             break;
+        }
+        if (handled) {
+            event.stopPropagation();
+            event.preventDefault();
         }
     });
 
