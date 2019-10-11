@@ -145,6 +145,9 @@ function clearChildren(elem) {
 function startLevel(level) {
     document.addEventListener('keydown', event => {
         //console.log(event);
+        if (autoPlay) {
+            return;
+        }
         let handled = false;
         switch (event.key) {
         case 'ArrowLeft':
@@ -190,7 +193,7 @@ function startLevel(level) {
     const backToStartButton = document.getElementById('back-to-start-button');
     const backToPushButton = document.getElementById('back-to-push-button');
     const backToMoveButton = document.getElementById('back-to-move-button');
-    //const playPauseButton = document.getElementById('play-pause-button');
+    const playPauseButton = document.getElementById('play-pause-button');
     const forwardToMoveButton = document.getElementById('forward-to-move-button');
     const forwardToPushButton = document.getElementById('forward-to-push-button');
     const forwardToEndButton = document.getElementById('forward-to-end-button');
@@ -201,6 +204,9 @@ function startLevel(level) {
         index: 0,
         data: [{lastMove: null, levelJson: JSON.stringify(level)}],
     }
+
+    let autoPlay = false;
+    let autoPlayTimerId = undefined;
 
     for (let r = 0; r < level.height; ++r) {
         for (let c = 0; c < level.width; ++c) {
@@ -218,6 +224,7 @@ function startLevel(level) {
     backToStartButton.onclick = () => { historySeek(-1, false, false); };
     backToPushButton.onclick = () => { historySeek(-1, false, true); };
     backToMoveButton.onclick = () => { historySeek(-1, true, true); };
+    playPauseButton.onclick = () => { togglePlayPause(); };
     forwardToMoveButton.onclick = () => { historySeek(+1, true, true); };
     forwardToPushButton.onclick = () => { historySeek(+1, false, true); };
     forwardToEndButton.onclick = () => { historySeek(+1, false, false); };
@@ -274,6 +281,7 @@ function startLevel(level) {
         enable(backToStartButton, !autoPlay && !atFirstMove);
         enable(backToPushButton, !autoPlay && !atFirstMove);
         enable(backToMoveButton, !autoPlay && !atFirstMove);
+        enable(playPauseButton, autoPlay || !atLastMove);
         enable(forwardToMoveButton, !autoPlay && !atLastMove);
         enable(forwardToPushButton, !autoPlay && !atLastMove);
         enable(forwardToEndButton, !autoPlay && !atLastMove);
