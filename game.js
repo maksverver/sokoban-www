@@ -267,8 +267,6 @@ function startLevel(level) {
         updateHistoryControls();
     }
 
-    redraw();
-
     function changeHistoryIndex(i) {
         if (i < 0 || i >= history.data.length) return false;
         history.index = i;
@@ -288,18 +286,18 @@ function startLevel(level) {
         }
     }
 
-    function tryMove(dr, dc) {
+    function validateAndExecuteMove(dr, dc) {
         const nr1 = level.playerR + dr;
         const nc1 = level.playerC + dc;
         if (level.walls[nr1][nc1]) {
-            return false;
+            return null;
         }
         let push = false;
         if (level.boxes[nr1][nc1]) {
             const nr2 = nr1 + dr;
             const nc2 = nc1 + dc;
             if (level.walls[nr2][nc2] || level.boxes[nr2][nc2]) {
-                return false;
+                return null;
             }
             level.boxes[nr2][nc2] = true;
             level.boxes[nr1][nc1] = false;
@@ -307,25 +305,70 @@ function startLevel(level) {
         }
         level.playerR = nr1;
         level.playerC = nc1;
-        const newState = {
-            lastMove: {dr: dr, dc: dc, push: push},
-            levelJson: JSON.stringify(level),
-        };
+        return {dr: dr, dc: dc, push: push};
+    }
+
+    function tryMove(dr, dc) {
+        const lastMove = validateAndExecuteMove(dr, dc);
+        if (!lastMove) {
+            return false;
+        }
+        const levelJson = JSON.stringify(level);
         // HACK: comparing JSON serialization isn't stable.
         if (history.index + 1 < history.data.length &&
-                newState.levelJson == history.data[history.index + 1].levelJson) {
+                levelJson == history.data[history.index + 1].levelJson) {
             // Implict redo.
             ++history.index;
         } else if (history.index > 0 &&
-                newState.levelJson == history.data[history.index - 1].levelJson) {
+                levelJson == history.data[history.index - 1].levelJson) {
             // Implict undo.
             --history.index;
         } else {
             // Reset redo stack and append new state.
             history.data.length = ++history.index;
-            history.data.push(newState);
+            history.data.push({lastMove: lastMove, levelJson: levelJson});
         }
         redraw();
         return true;
     }
+
+    // This is like tryMove() above, but doesn't try to infer implict undo/redo,
+    // and doesn't redraw afterwards. Used to apply initial moves.
+    function tryInitialMove(dr, dc) {
+        const lastMove = validateAndExecuteMove(dr, dc);
+        if (!lastMove) {
+            return false;
+        }
+        const levelJson = JSON.stringify(level);
+        history.data.length = ++history.index;
+        history.data.push({lastMove: lastMove, levelJson: levelJson});
+        return true;
+    }
+
+    function applyInitialMoves(historyString) {
+        //  - We don't distinguish between push/move.
+        //  - Unrecognized characters are ignored.
+        //  - We stop when we encounter an invalid move; we could just ignore them,
+        //    but the final state probably wouldn't make sense.
+        const charToMoveMap = {
+            'u': { dr: -1, dc:  0},
+            'U': { dr: -1, dc:  0},
+            'l': { dr:  0, dc: -1},
+            'L': { dr:  0, dc: -1},
+            'r': { dr:  0, dc: +1},
+            'R': { dr:  0, dc: +1},
+            'd': { dr: +1, dc:  0},
+            'D': { dr: +1, dc:  0},
+        }
+        for (let i = 0; i < historyString.length; ++i) {
+            let move = charToMoveMap[historyString.charAt(i)];
+            if (move && !tryInitialMove(move.dr, move.dc)) {
+                console.error('Error while applying initial moves: invalid move at index ' + i);
+                break;
+            }
+        }
+    }
+
+    applyInitialMoves(document.getElementById('initial-moves').value);
+    redraw();
 }
