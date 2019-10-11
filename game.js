@@ -221,54 +221,52 @@ function startLevel(level) {
 
     updateCells();
 
-    function saveState() {
-        return {levelJson: JSON.stringify(level)};
+    const history = {
+        index: 0,
+        data: [{lastMove: null, levelJson: JSON.stringify(level)}],
     }
 
-    function restoreState(savedState) {
-        level = JSON.parse(savedState.levelJson);
+    function changeHistoryIndex(i) {
+        if (i < 0 || i >= history.data.length) return false;
+        history.index = i;
+        level = JSON.parse(history.data[i].levelJson);
+        updateCells();
+        return true;
     }
 
     function tryMove(dr, dc) {
-        const savedState = saveState();
         const nr1 = level.playerR + dr;
         const nc1 = level.playerC + dc;
         if (level.walls[nr1][nc1]) {
-            return;
+            return false;
         }
+        let push = false;
         if (level.boxes[nr1][nc1]) {
             const nr2 = nr1 + dr;
             const nc2 = nc1 + dc;
             if (level.walls[nr2][nc2] || level.boxes[nr2][nc2]) {
-                return;
+                return false;
             }
             level.boxes[nr2][nc2] = true;
             level.boxes[nr1][nc1] = false;
+            push = true;
         }
         level.playerR = nr1;
         level.playerC = nc1;
-        undoStack.push(savedState);
-        redoStack.length = 0;
+        history.data.length = ++history.index;
+        history.data.push({
+            lastMove: {dr: dr, dc: dc, push: push},
+            levelJson: JSON.stringify(level),
+        });
         updateCells();
+        return true;
     }
 
     function tryUndo() {
-        const savedState = undoStack.pop();
-        if (!savedState) {
-            return;
-        }
-        redoStack.push(saveState());
-        restoreState(savedState);
-        updateCells();
+        return changeHistoryIndex(history.index - 1);
     }
 
     function tryRedo() {
-        let savedState = redoStack.pop();
-        if (!savedState) {
-            return;
-        }
-        undoStack.push(saveState());
-        restoreState(savedState);
-        updateCells();
+        return changeHistoryIndex(history.index + 1);
     }
 }
