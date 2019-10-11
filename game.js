@@ -166,11 +166,7 @@ function startLevel(level) {
         case 'z':
         case 'Z':
             if (event.ctrlKey) {
-                if (event.shiftKey) {
-                    tryRedo();
-                } else {
-                    tryUndo();
-                }
+                historySeek(event.shiftKey ? +1 : -1, true, true);
                 handled = true;
             }
             break;
@@ -218,6 +214,13 @@ function startLevel(level) {
             }
         }
     }
+
+    backToStartButton.onclick = () => { historySeek(-1, false, false); };
+    backToPushButton.onclick = () => { historySeek(-1, false, true); };
+    backToMoveButton.onclick = () => { historySeek(-1, true, true); };
+    forwardToMoveButton.onclick = () => { historySeek(+1, true, true); };
+    forwardToPushButton.onclick = () => { historySeek(+1, false, true); };
+    forwardToEndButton.onclick = () => { historySeek(+1, false, false); };
 
     function updateCells() {
         clearChildren(gPlayer);
@@ -274,6 +277,17 @@ function startLevel(level) {
         return true;
     }
 
+    function historySeek(direction, stopAtMove, stopAtPush) {
+        let i = history.index;
+        while (i + direction >= 0 && i + direction < history.data.length) {
+            i += direction;
+            if (stopAtMove || (stopAtPush && history.data[i].lastMove.push)) break;
+        }
+        if (i != history.index) {
+            changeHistoryIndex(i);
+        }
+    }
+
     function tryMove(dr, dc) {
         const nr1 = level.playerR + dr;
         const nc1 = level.playerC + dc;
@@ -313,13 +327,5 @@ function startLevel(level) {
         }
         redraw();
         return true;
-    }
-
-    function tryUndo() {
-        return changeHistoryIndex(history.index - 1);
-    }
-
-    function tryRedo() {
-        return changeHistoryIndex(history.index + 1);
     }
 }
