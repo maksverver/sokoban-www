@@ -190,6 +190,22 @@ function startLevel(level) {
     const gGoals = document.getElementById('game-goals');
     const gBoxes = document.getElementById('game-boxes');
     const gPlayer = document.getElementById('game-player');
+
+    const backToStartButton = document.getElementById('back-to-start-button');
+    const backToPushButton = document.getElementById('back-to-push-button');
+    const backToMoveButton = document.getElementById('back-to-move-button');
+    //const playPauseButton = document.getElementById('play-pause-button');
+    const forwardToMoveButton = document.getElementById('forward-to-move-button');
+    const forwardToPushButton = document.getElementById('forward-to-push-button');
+    const forwardToEndButton = document.getElementById('forward-to-end-button');
+
+    const historyMoves = document.getElementById('history-moves');
+
+    const history = {
+        index: 0,
+        data: [{lastMove: null, levelJson: JSON.stringify(level)}],
+    }
+
     for (let r = 0; r < level.height; ++r) {
         for (let c = 0; c < level.width; ++c) {
             if (level.walls[r][c]) {
@@ -216,18 +232,45 @@ function startLevel(level) {
         }
     }
 
-    updateCells();
+    function updateHistoryControls() {
+        backToStartButton.disabled = history.index <= 0;
+        backToPushButton.disabled = history.index <= 0;
+        backToMoveButton.disabled = history.index <= 0;
+        forwardToMoveButton.disabled = history.index + 1 >= history.data.length;
+        forwardToPushButton.disabled = history.index + 1 >= history.data.length;
+        forwardToEndButton.disabled = history.index + 1 >= history.data.length;
 
-    const history = {
-        index: 0,
-        data: [{lastMove: null, levelJson: JSON.stringify(level)}],
+        clearChildren(historyMoves);
+        let historyString = '';
+        for (let i = 0; i < history.data.length; ++i) {
+            let move = history.data[i].lastMove;
+            if (move) {
+                let moveChar = '?';
+                if (move.dr == -1 && move.dc ==  0) moveChar = move.push ? 'U' : 'u';
+                if (move.dr ==  0 && move.dc == -1) moveChar = move.push ? 'L' : 'l';
+                if (move.dr ==  0 && move.dc == +1) moveChar = move.push ? 'R' : 'r';
+                if (move.dr == +1 && move.dc ==  0) moveChar = move.push ? 'D' : 'd';
+                historyString += moveChar;
+            }
+            if (i == history.index) {
+                historyString += ':';
+            }
+        }
+        historyMoves.appendChild(document.createTextNode(historyString));
     }
+
+    function redraw() {
+        updateCells();
+        updateHistoryControls();
+    }
+
+    redraw();
 
     function changeHistoryIndex(i) {
         if (i < 0 || i >= history.data.length) return false;
         history.index = i;
         level = JSON.parse(history.data[i].levelJson);
-        updateCells();
+        redraw();
         return true;
     }
 
@@ -250,12 +293,25 @@ function startLevel(level) {
         }
         level.playerR = nr1;
         level.playerC = nc1;
-        history.data.length = ++history.index;
-        history.data.push({
+        const newState = {
             lastMove: {dr: dr, dc: dc, push: push},
             levelJson: JSON.stringify(level),
-        });
-        updateCells();
+        };
+        // HACK: comparing JSON serialization isn't stable.
+        if (history.index + 1 < history.data.length &&
+                newState.levelJson == history.data[history.index + 1].levelJson) {
+            // Implict redo.
+            ++history.index;
+        } else if (history.index > 0 &&
+                newState.levelJson == history.data[history.index - 1].levelJson) {
+            // Implict undo.
+            --history.index;
+        } else {
+            // Reset redo stack and append new state.
+            history.data.length = ++history.index;
+            history.data.push(newState);
+        }
+        redraw();
         return true;
     }
 
