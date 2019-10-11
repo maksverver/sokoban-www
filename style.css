@@ -34,6 +34,11 @@ span#history-buttons button {
     font-size: 20pt;
     /* workaround for vertical scrollbar that appears without this */
     overflow: hidden;
+    background-color: #f0f0f0;
+}
+
+span#history-buttons button.disabled {
+    background-color: #a0a0a0;
 }
 
 span#history-moves {

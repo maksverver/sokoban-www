@@ -235,13 +235,48 @@ function startLevel(level) {
         }
     }
 
+    function togglePlayPause() {
+        if (autoPlay) {
+            clearTimeout(autoPlayTimerId);
+            autoPlayTimerId = undefined;
+            autoPlay = false;
+        } else {
+            autoPlayTimerId = setTimeout(autoPlayTimerHandler, 100);
+            autoPlay = true;
+        }
+        updateHistoryControls();
+    }
+
+    function autoPlayTimerHandler() {
+        const i = history.index + 1;
+        if (changeHistoryIndex(i) && i + 1 < history.data.length) {
+            autoPlayTimerId = setTimeout(autoPlayTimerHandler,
+                history.data[i + 1].lastMove.push ? 250 : 75);
+        } else {
+            autoPlayTimerId = undefined;
+            autoPlay = false;
+            updateHistoryControls();
+            return;
+        }
+    }
+
     function updateHistoryControls() {
-        backToStartButton.disabled = history.index <= 0;
-        backToPushButton.disabled = history.index <= 0;
-        backToMoveButton.disabled = history.index <= 0;
-        forwardToMoveButton.disabled = history.index + 1 >= history.data.length;
-        forwardToPushButton.disabled = history.index + 1 >= history.data.length;
-        forwardToEndButton.disabled = history.index + 1 >= history.data.length;
+        function enable(button, enabled) {
+            button.disabled = !enabled;
+            if (enabled) {
+                button.classList.remove('disabled');
+            } else {
+                button.classList.add('disabled');
+            }
+        }
+        const atFirstMove = history.index <= 0;
+        const atLastMove = history.index + 1 >= history.data.length;
+        enable(backToStartButton, !autoPlay && !atFirstMove);
+        enable(backToPushButton, !autoPlay && !atFirstMove);
+        enable(backToMoveButton, !autoPlay && !atFirstMove);
+        enable(forwardToMoveButton, !autoPlay && !atLastMove);
+        enable(forwardToPushButton, !autoPlay && !atLastMove);
+        enable(forwardToEndButton, !autoPlay && !atLastMove);
 
         clearChildren(historyMoves);
         let historyString = '';
