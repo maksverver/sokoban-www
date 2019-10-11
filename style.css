@@ -7,8 +7,37 @@ body {
     margin: 0.5em;
 }
 
-svg#game-view {
-    background: white;
-    width: 100%;
+div#game-view {
+    flex-direction: column;
     height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+svg#play-area {
+    background: white;
+    flex: 1 1 auto;
+}
+
+div#history-area {
+    display: flex;
+}
+
+span#history-buttons {
+    vertical-align: bottom;
+    font-size: 20pt;
+    flex: 0 0 auto;
+}
+
+span#history-buttons button {
+    font-size: 20pt;
+    /* workaround for vertical scrollbar that appears without this */
+    overflow: hidden;
+}
+
+span#history-moves {
+    padding: 0.25em;
+    font-size: 20pt;
+    overflow: scroll;
+    flex: 1 1 auto;
 }

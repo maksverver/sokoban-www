@@ -181,12 +181,9 @@ function startLevel(level) {
         }
     });
 
-    let undoStack = [];
-    let redoStack = [];
-
-    document.getElementById('setup').style.display = 'none';
-    const svg = document.getElementById('game-view');
-    svg.style.display = 'block';
+    document.getElementById('setup-view').style.display = 'none';
+    document.getElementById('game-view').style.display = 'flex';
+    const svg = document.getElementById('play-area');
     svg.setAttribute('viewBox', '-0.1 -0.1 ' + level.width + '.2 ' + level.height + '.2');
     const gGrid = document.getElementById('game-grid');
     const gWalls = document.getElementById('game-walls');
